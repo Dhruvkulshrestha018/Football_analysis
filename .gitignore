@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Videos (too large for Git)
+input_videos/
+output_videos/
+
+# Model weights (optional, large)
+models/*.pt
+
+# System files
+.DS_Store
+
+# Environments
+venv/
+.env/
+
