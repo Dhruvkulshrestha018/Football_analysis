@@ -32,10 +32,10 @@ football-analysis/
 ├── output_videos/ # Annotated result videos
 ├── trackers/ # Tracking logic (unique IDs)
 ├── team_assigner/ # Jersey color-based team assignment
-├── player_ball_assigner/ # Logic for assigning ball possession
-├── utils/ # Helper modules for video and bbox operations
-├── training_notebook/ # Notebook used for YOLOv5 training
-└── development_and_analysis/ # Notebook for color-clustering and analysis
+├── player_ball_assigner/ # Ball possession logic
+├── utils/ # Helper modules
+├── training_notebook/ # YOLOv5 training notebook
+└── development_and_analysis/ # Color clustering & analysis
 
 
 ---
@@ -45,23 +45,23 @@ football-analysis/
 1. Load input video  
 2. Run YOLO detections on each frame  
 3. Track detected objects across frames  
-4. Assign each player to a team via jersey color  
-5. Identify which player has (or is closest to) the ball  
-6. Generate and save annotated output video  
+4. Assign each player to a team based on jersey color  
+5. Identify which player is closest to the ball (possession)  
+6. Generate annotated output video  
 
 ---
 
 ## 🎯 Goal
 
-To build a lightweight, automated system for football analytics — helping coaches, analysts, and developers understand player performance, ball control, and team dynamics using computer vision.
+To build a lightweight, automated football analytics system that helps coaches, analysts, and developers understand player performance, ball control, and team dynamics using computer vision.
 
 ---
 
 ## 🛠️ How to Use
 
-1. Place your raw match video(s) in the `input_videos/` folder  
-2. Make sure your YOLOv5 weights are in `models/`  
-3. Run the main pipeline:  
-   ```bash
-   python main.py
+1. Put your match videos in `input_videos/`
+2. Add YOLOv5 weights to the `models/` folder  
+3. Run the pipeline:
 
+```bash
+python main.py
