@@ -3,6 +3,8 @@ from trackers.tracker import Tracker
 from team_assigner import TeamAssigner
 import numpy as np
 from player_ball_assigner import PlayerBallAssigner
+from camera_movement_estimator import CameraMovementEstimator
+from view_transformer import ViewTransformer
 
 def main():
     video_frames = read_video('input_videos/08fd33_4.mp4')
@@ -19,6 +21,19 @@ def main():
     )
     print(f"[INFO] Tracks loaded: {len(tracks)}")
 
+    tracker.add_position_to_tracks(tracks)
+
+    camera_movement_estimator = CameraMovementEstimator(video_frames[0])
+    camera_movement_per_frame = camera_movement_estimator.get_camera_movement(video_frames,
+                                                                                read_from_stub=True,
+                                                                                stub_path='stubs/camera_movement_stub.pkl')
+    camera_movement_estimator.add_adjust_positions_to_tracks(tracks,camera_movement_per_frame)
+
+    # View Trasnformer
+    view_transformer = ViewTransformer()
+    view_transformer.add_transformed_position_to_tracks(tracks)
+
+    
     # Interpolate the ball
     tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
 
@@ -37,6 +52,9 @@ def main():
             tracks['players'][frame_num][player_id]['team'] = team 
             tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
 
+
+    
+
     # Assign Ball Possession
     player_assigner = PlayerBallAssigner()
     team_ball_control = []
@@ -52,6 +70,9 @@ def main():
     team_ball_control= np.array(team_ball_control)
     # Draw Output
     output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
+    
+    output_video_frames = camera_movement_estimator.draw_camera_movement(output_video_frames,camera_movement_per_frame)
+
     print(f"[INFO] Output video frames generated: {len(output_video_frames)}")
 
     save_video(output_video_frames, 'output_videos/output_video.avi')

@@ -7,13 +7,24 @@ import numpy as np
 import pandas as pd
 import sys 
 sys.path.append('../')
-from utils.bbox_utils import get_center_of_bbox, get_bbox_width
+from utils.bbox_utils import get_center_of_bbox, get_bbox_width, get_foot_position
 
 
 class Tracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path) 
         self.tracker = sv.ByteTrack()
+
+    def add_position_to_tracks(sef,tracks):
+        for object, object_tracks in tracks.items():
+            for frame_num, track in enumerate(object_tracks):
+                for track_id, track_info in track.items():
+                    bbox = track_info['bbox']
+                    if object == 'ball':
+                        position= get_center_of_bbox(bbox)
+                    else:
+                        position = get_foot_position(bbox)
+                    tracks[object][frame_num][track_id]['position'] = position
 
     def interpolate_ball_positions(self,ball_positions):
         ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
@@ -175,8 +186,8 @@ class Tracker:
 
         return frame
     
-    def draw_annotations(self,video_frames, tracks, team_ball_control):
-        output_video_frames= []
+    def draw_annotations(self, video_frames, tracks, team_ball_control):
+        output_video_frames = []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
 
@@ -186,21 +197,40 @@ class Tracker:
 
             # Draw Players
             for track_id, player in player_dict.items():
-                color = player.get('team_color', (255, 0, 0))  # Default color if not assigned
-                frame = self.draw_ellipse(frame, player["bbox"], color, track_id)
+                color = player.get("team_color", (0, 0, 255))
+                
+                # Use adjusted bbox if available, otherwise use original bbox
+                if 'bbox_adjusted' in player:
+                    bbox_to_draw = player['bbox_adjusted']
+                else:
+                    bbox_to_draw = player["bbox"]
+                    
+                frame = self.draw_ellipse(frame, bbox_to_draw, color, track_id)
 
-                if player.get('has_ball',False):
-                    frame = self.draw_triangle(frame, player["bbox"],(0,0,255))
+                if player.get('has_ball', False):
+                    frame = self.draw_triangle(frame, bbox_to_draw, (0, 0, 255))  # Fixed typo
 
             # Draw Referee
             for _, referee in referee_dict.items():
-                frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
+                # Use adjusted bbox if available, otherwise use original bbox
+                if 'bbox_adjusted' in referee:
+                    bbox_to_draw = referee['bbox_adjusted']
+                else:
+                    bbox_to_draw = referee["bbox"]
+                frame = self.draw_ellipse(frame, bbox_to_draw, (0, 255, 255))
             
             # Draw ball 
             for track_id, ball in ball_dict.items():
-                frame = self.draw_triangle(frame, ball["bbox"],(0,255,0))
+                # Use adjusted bbox if available, otherwise use original bbox
+                if 'bbox_adjusted' in ball:
+                    bbox_to_draw = ball['bbox_adjusted']
+                else:
+                    bbox_to_draw = ball["bbox"]
+                frame = self.draw_triangle(frame, bbox_to_draw, (0, 255, 0))  # Fixed typo
+
             # Draw Team Ball Control
             frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+
             output_video_frames.append(frame)
 
         return output_video_frames
